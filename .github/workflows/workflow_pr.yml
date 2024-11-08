@@ -23,6 +23,16 @@ defaults:
     shell: bash
 
 jobs:
+  docker_build_scan_push:
+    name: Docker Build, Scan and Push
+    uses: ./.github/workflows/docker_job.yml
+    needs: [
+      create_tags
+    ]
+    with:
+      tag: latest
+      branch_name: ${{ github.head_ref }}
+
   end_of_pr_workflow:
     name: End of PR Workflow
     runs-on: ubuntu-latest
