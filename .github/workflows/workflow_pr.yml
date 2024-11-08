@@ -28,11 +28,13 @@ jobs:
     uses: ./.github/workflows/docker_job.yml
     with:
       tag: latest
+      checkout_tag: ${{ github.head_ref }}
       branch_name: ${{ github.head_ref }}
 
   end_of_pr_workflow:
     name: End of PR Workflow
     runs-on: ubuntu-latest
+    needs: docker_build_scan_push
     if: always()
     steps:
       - name: End of PR Workflow
