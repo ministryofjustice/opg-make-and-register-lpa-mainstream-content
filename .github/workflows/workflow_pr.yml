@@ -26,9 +26,6 @@ jobs:
   docker_build_scan_push:
     name: Docker Build, Scan and Push
     uses: ./.github/workflows/docker_job.yml
-    needs: [
-      create_tags
-    ]
     with:
       tag: latest
       branch_name: ${{ github.head_ref }}
