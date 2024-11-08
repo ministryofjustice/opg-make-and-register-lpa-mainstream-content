@@ -2,7 +2,7 @@ FROM node:20-alpine AS fetched-repo
 
 WORKDIR /app
 
-RUN apk add git && git clone https://github.com/gaynorc75/register-lpa-prototype.git && ls
+RUN apk add --no-cache git=2.45.2-r0 && git clone https://github.com/gaynorc75/register-lpa-prototype.git && ls
 
 FROM node:20-alpine AS build
 
