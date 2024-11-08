@@ -49,23 +49,9 @@ jobs:
     outputs:
       docker_tag: ${{ steps.bump_version.outputs.tag }}
 
-  generate_environment_workspace_name:
-    if: github.ref != 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate workspace name
-        id: name_workspace
-        run: |
-          workspace=${{ github.event.number }}
-          echo "name=${workspace}" >> $GITHUB_OUTPUT
-          echo ${workspace}
-    outputs:
-      environment_workspace_name: ${{ steps.name_workspace.outputs.name }}
-
   consolidate_tags:
     needs: [
       create_tags,
-      generate_environment_workspace_name
       ]
     runs-on: ubuntu-latest
     if: always()
