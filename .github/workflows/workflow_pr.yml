@@ -1,0 +1,33 @@
+name: "[Workflow] PR"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: none
+  checks: none
+  contents: write
+  deployments: none
+  id-token: write
+  issues: write
+  packages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: write
+  statuses: none
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  end_of_pr_workflow:
+    name: End of PR Workflow
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: End of PR Workflow
+        run: |
+          echo "End of workflow"
