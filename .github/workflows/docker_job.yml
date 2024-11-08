@@ -1,0 +1,195 @@
+name: "[Job] Docker Build, Scan and Push to ECR"
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag for docker image'
+        required: true
+        type: string
+      checkout_tag:
+        description: 'Ref or tag to checkout'
+        default: ${{ github.ref }}
+        required: false
+        type: string
+      branch_name:
+        description: 'Branch name'
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  id-token: write
+  contents: write
+  security-events: write
+  pull-requests: read
+
+jobs:
+  docker_build_scan_push:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ecr_repository: make-and-register-lpa-mainstream-content
+            name: app
+            path: Dockerfile
+            trivyignores: .trivyignore.yaml
+            platforms: linux/arm64,linux/amd64
+
+
+    runs-on: ubuntu-latest
+    name: ${{ matrix.ecr_repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout_tag }}
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        id: hadolint
+        with:
+          dockerfile: ${{ matrix.path }}
+          no-fail: false
+          failure-threshold: warning
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.7.1
+        id: buildx_setup
+        with:
+          version: v0.15.1
+          platforms: linux/amd64,linux/arm64
+
+      - uses: unfor19/install-aws-cli-action@v1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::311462405659:role/opg-mrlpa-mainstream-content-github-actions-ecr-push
+          role-duration-seconds: 900
+          role-session-name: GithubActionsECRPushMLPAB
+      - name: ECR Login
+        id: login_ecr
+        uses: aws-actions/amazon-ecr-login@v2.0.1
+        with:
+          mask-password: true
+          registries: 311462405659
+
+      - name: Trivy Dockerfile Configuration Scanner for ${{ matrix.ecr_repository }}
+        id: trivy_dockerfile_misconfiguration_scan
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
+          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
+          TRIVY_IGNOREFILE: ${{ matrix.trivyignores }}
+        with:
+          scan-type: fs
+          scan-ref: ${{ matrix.path }}
+          severity: 'HIGH,CRITICAL'
+          scanners: 'misconfig'
+          version: v0.56.2
+          exit-code: 1
+
+      - name: Build ${{ matrix.ecr_repository }} Image
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          file: ${{ matrix.path }}
+          platforms: linux/amd64
+          push: false
+          load: true
+          cache-from: type=registry,ref=${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:cache-${{ inputs.branch_name }}
+          tags: |
+            ${{ matrix.ecr_repository }}:${{ inputs.tag }}
+          build-args: |
+            TAG=${{inputs.tag}}
+        env:
+          SOURCE_DATE_EPOCH: 0
+          DOCKER_CONTENT_TRUST: 1
+
+      - name: Trivy Image Vulnerability Scanner for ${{ matrix.ecr_repository }}
+        id: trivy_scan
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
+          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
+          TRIVY_IGNOREFILE: ${{ matrix.trivyignores }}
+        with:
+          scan-type: 'image'
+          scanners: 'vuln'
+          image-ref: ${{ matrix.ecr_repository }}:${{ inputs.tag }}
+          severity: 'HIGH,CRITICAL'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          exit-code: 0
+
+      - name: Upload Trivy scan results to GitHub Security tab for ${{ matrix.ecr_repository }}
+        id: trivy_upload_sarif
+        uses: github/codeql-action/upload-sarif@v3.27.0
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      - name: Trivy Image SBOM Generator for ${{ matrix.ecr_repository }} and submit results to Dependency Graph
+        id: trivy_sbom
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
+          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
+          TRIVY_IGNOREFILE: ${{ matrix.trivyignores }}
+        with:
+          scan-type: 'image'
+          image-ref: ${{ matrix.ecr_repository }}:${{ inputs.tag }}
+          format: 'github'
+          output: '${{ matrix.name }}-${{ inputs.tag }}.sbom.json'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload trivy report as a Github artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-sbom-report-${{ matrix.name }}-${{ inputs.tag }}
+          path: '${{ github.workspace }}/${{ matrix.name }}-${{ inputs.tag }}.sbom.json'
+          retention-days: 20 # 90 is the default
+
+      - name: Push ${{ matrix.ecr_repository }} Image to ECR for PR
+        if: ${{ github.workflow != 'Path To Live' }}
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          file: ${{ matrix.path }}
+          builder: ${{ steps.buildx_setup.outputs.name }}
+          push: true
+          platforms:  ${{ matrix.platforms }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:cache-${{ inputs.branch_name }}
+          tags: |
+            ${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:${{ inputs.tag }}
+          build-args: |
+            TAG=${{inputs.tag}}
+          sbom: false
+          provenance: false
+        env:
+          SOURCE_DATE_EPOCH: 0
+          DOCKER_CONTENT_TRUST: 1
+
+      - name: Push ${{ matrix.ecr_repository }} Image to ECR for Path to Live
+        if: ${{ github.workflow == 'Path To Live' }}
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          file: ${{ matrix.path }}
+          builder: ${{ steps.buildx_setup.outputs.name }}
+          push: true
+          platforms:  ${{ matrix.platforms }}
+          cache-to: type=registry,mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:cache-${{ inputs.branch_name }}
+          tags: |
+            ${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:${{ inputs.tag }}
+            ${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:main-${{ inputs.tag }}
+            ${{ steps.login_ecr.outputs.registry }}/${{ matrix.ecr_repository }}:latest
+          build-args: |
+            TAG=${{inputs.tag}}
+          sbom: false
+          provenance: false
+        env:
+          SOURCE_DATE_EPOCH: 0
+          DOCKER_CONTENT_TRUST: 1
