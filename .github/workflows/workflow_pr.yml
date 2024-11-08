@@ -25,7 +25,6 @@ defaults:
 jobs:
   create_tags:
     name: Create Tags
-    needs: detect_changes
     uses: ./.github/workflows/tags_job.yml
     with:
       changes_detected: true
@@ -33,6 +32,7 @@ jobs:
   docker_build_scan_push:
     name: Docker Build, Scan and Push
     uses: ./.github/workflows/docker_job.yml
+    needs: create_tags
     with:
       tag: ${{ needs.create_tags.outputs.version_tag }}
       checkout_tag: ${{ github.head_ref }}
