@@ -65,7 +65,6 @@ jobs:
   consolidate_tags:
     needs: [
       create_tags,
-      pull_tags,
       generate_environment_workspace_name
       ]
     runs-on: ubuntu-latest
