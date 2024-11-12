@@ -1,0 +1,86 @@
+name: "[Job] Manage AWS Account Infrastructure"
+
+on:
+  workflow_call:
+    inputs:
+      workspace_name:
+        description: 'The terraform workspace to target for account actions'
+        required: true
+        type: string
+      oidc_role_arn:
+        description: 'OIDC Role ARN'
+        required: true
+        type: string
+
+env:
+  TFLINT_VERSION: 0.50.1
+
+jobs:
+  terraform_account_workflow:
+    name: "${{ inputs.workspace_name }} account deployment"
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.bump_version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - uses: unfor19/install-aws-cli-action@v1
+      - name: Parse terraform version
+        id: tf_version_setup
+        working-directory: ./terraform/account
+        run: |
+          if [ -f ./versions.tf ]; then
+            terraform_version=$(cat ./versions.tf | ../../scripts/terraform-version.sh)
+            echo "- Terraform version: [${terraform_version}]" >> $GITHUB_STEP_SUMMARY
+            echo "TERRAFORM_VERSION=${terraform_version}" >> $GITHUB_OUTPUT
+          fi
+      - name: "Terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        run: echo "terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        working-directory: ./terraform/account
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: ${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Configure AWS Credentials For Terraform
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: eu-west-1
+          role-duration-seconds: 3600
+          role-session-name: OPGModernisingLPATerraformGithubAction
+          role-to-assume: ${{ inputs.oidc_role_arn }}
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: v${{ env.TFLINT_VERSION }}
+
+      - name: Check formatting
+        id: tf_fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./terraform/account
+        continue-on-error: true
+
+      - name: Lint Terraform
+        id: tf_lint
+        run: tflint --recursive
+        working-directory: ./terraform/account
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: ./terraform/account
+
+      - name: Terraform Plan
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+        run: |
+          terraform workspace show
+          terraform plan -input=false -parallelism=30 -lock-timeout=300s -out=terraform.plan
+        working-directory: ./terraform/account
+
+      - name: Terraform Apply
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+        if: github.ref == 'refs/heads/main'
+        run: |
+          terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan
+        working-directory: ./terraform/account
