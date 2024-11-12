@@ -1,3 +1,3 @@
 module "ecs" {
-  source = "./modules/ecs"
+  source = "./modules/app"
 }
