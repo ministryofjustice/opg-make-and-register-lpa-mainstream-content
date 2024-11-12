@@ -7,10 +7,10 @@ variable "container_version" {
   default = "latest"
 }
 
-variable "public_access_enabled" {
-  type    = bool
-  default = false
-}
+# variable "public_access_enabled" {
+#   type    = bool
+#   default = false
+# }
 
 output "container_version" {
   value = var.container_version
