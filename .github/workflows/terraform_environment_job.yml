@@ -21,6 +21,10 @@ on:
         default: false
         required: false
         type: boolean
+      oidc_role_arn:
+        description: 'OIDC Role ARN'
+        required: true
+        type: string
     # outputs:
       # terraform_workspace_name:
       #   description: "Name of Terraform workspace"
@@ -85,7 +89,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::679638075911:role/opg-mrlpa-mainstream-content-github-actions-ci-terraform
+          # this can be an input to the job in future to separate dev and prod runs
+          role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
       # - uses: webfactory/ssh-agent@v0.9.0
