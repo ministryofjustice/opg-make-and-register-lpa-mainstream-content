@@ -48,7 +48,7 @@ jobs:
           aws-region: eu-west-1
           role-duration-seconds: 3600
           role-session-name: OPGModernisingLPATerraformGithubAction
-          role-arn: ${{ inputs.oidc_role_arn }}
+          role-to-assume: ${{ inputs.oidc_role_arn }}
       - uses: terraform-linters/setup-tflint@v4
         name: Setup TFLint
         with:
@@ -72,7 +72,6 @@ jobs:
       - name: Terraform Plan
         env:
           TF_WORKSPACE: ${{ inputs.workspace_name }}
-          TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
         run: |
           terraform workspace show
           terraform plan -input=false -parallelism=30 -lock-timeout=300s -out=terraform.plan
@@ -81,7 +80,6 @@ jobs:
       - name: Terraform Apply
         env:
           TF_WORKSPACE: ${{ inputs.workspace_name }}
-          TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
         if: github.ref == 'refs/heads/main'
         run: |
           terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan

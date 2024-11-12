@@ -89,7 +89,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-region: eu-west-1
-          # this can be an input to the job in future to separate dev and prod runs
           role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
