@@ -1,0 +1,156 @@
+name: "[Job] Manage AWS Environment Infrastructure"
+
+on:
+  workflow_call:
+    inputs:
+      workspace_name:
+        description: 'The terraform workspace to target for environment actions'
+        required: true
+        type: string
+      version_tag:
+        description: 'The docker image tag to deploy in the environment'
+        required: true
+        type: string
+      checkout_tag:
+        description: 'Ref or tag to checkout'
+        default: ${{ github.ref }}
+        required: false
+        type: string
+      public_access_enabled:
+        description: 'Enable public access to the environment?'
+        default: false
+        required: false
+        type: boolean
+    # outputs:
+      # terraform_workspace_name:
+      #   description: "Name of Terraform workspace"
+      #   value: ${{ jobs.terraform_environment_workflow.outputs.terraform_workspace_name }}
+      # terraform_container_version:
+      #   description: "Container version deployed by Terraform"
+      #   value: ${{ jobs.terraform_environment_workflow.outputs.terraform_container_version }}
+      # url:
+      #   description: "URL for environment"
+      #   value: ${{ jobs.terraform_environment_workflow.outputs.url }}
+      # environment_config_json:
+      #   description: "Environment config JSON"
+      #   value: ${{ jobs.terraform_environment_workflow.outputs.environment_config_json }}
+    # secrets:
+    #   ssh_deploy_key:
+    #     description: 'SSH Deploy Key'
+    #     required: true
+    #   github_access_token:
+    #     description: 'Github Token'
+    #     required: true
+
+permissions:
+  pull-requests: write
+  issues: write
+  id-token: write
+
+env:
+  TFLINT_VERSION: 0.50.1
+
+jobs:
+  terraform_environment_workflow:
+    name: "${{ inputs.workspace_name }} environment deployment"
+    runs-on: ubuntu-latest
+    # outputs:
+    #   terraform_workspace_name: ${{ steps.terraform_outputs.outputs.workspace_name }}
+    #   terraform_container_version: ${{ steps.terraform_outputs.outputs.container_version }}
+    #   url: ${{ steps.terraform_outputs.outputs.url }}
+    #   environment_config_json: ${{ steps.terraform_outputs.outputs.environment_config_json }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout_tag }}
+          fetch-depth: '0'
+      - uses: unfor19/install-aws-cli-action@v1
+      - name: Parse terraform version
+        id: tf_version_setup
+        working-directory: ./terraform/environment
+        run: |
+          if [ -f ./versions.tf ]; then
+            terraform_version=$(cat ./versions.tf | ../../scripts/terraform-version.sh)
+            echo "- Terraform version: [${terraform_version}]" >> $GITHUB_STEP_SUMMARY
+            echo "TERRAFORM_VERSION=${terraform_version}" >> $GITHUB_OUTPUT
+          fi
+      - name: "Terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        run: echo "terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        working-directory: ./terraform/environment
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: ${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Configure AWS Credentials For Terraform
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::679638075911:role/opg-mrlpa-mainstream-content-github-actions-ci-terraform
+          role-duration-seconds: 900
+          role-session-name: GithubActionsTerraform
+      # - uses: webfactory/ssh-agent@v0.9.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.ssh_deploy_key }}
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: v${{ env.TFLINT_VERSION }}
+
+      - name: Check formatting
+        id: tf_fmt
+        run: terraform fmt -check -recursive
+        working-directory: ./terraform/environment
+        continue-on-error: true
+
+      - name: Lint Terraform
+        id: tf_lint
+        run: tflint --recursive
+        working-directory: ./terraform/environment
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: ./terraform/environment
+
+      - name: Terraform Plan
+        id: terraform_plan
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+          TF_VAR_container_version: ${{ inputs.version_tag }}
+        run: |
+          terraform workspace show
+          terraform plan -var public_access_enabled=${{ inputs.public_access_enabled }} -lock-timeout=300s -input=false -parallelism=30 -out=terraform.plan
+        working-directory: ./terraform/environment
+
+      # - name: Protect environment workspace
+      #   if: github.event_name == 'pull_request' && inputs.workspace_name != 'weblate'
+      #   env:
+      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
+      #     TF_VAR_container_version: ${{ inputs.version_tag }}
+      #   run: |
+      #     wget https://github.com/ministryofjustice/opg-terraform-workspace-manager/releases/download/v0.3.2/opg-terraform-workspace-manager_Linux_x86_64.tar.gz -O $HOME/terraform-workspace-manager.tar.gz
+      #     sudo tar -xvf $HOME/terraform-workspace-manager.tar.gz -C /usr/local/bin
+      #     sudo chmod +x /usr/local/bin/terraform-workspace-manager
+      #     terraform-workspace-manager -register-workspace=$TF_WORKSPACE -time-to-protect=24 -aws-account-id=653761790766 -aws-iam-role=modernising-lpa-ci
+      #   working-directory: ./terraform/environment
+
+      # - name: Terraform Apply
+      #   env:
+      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
+      #     TF_VAR_container_version: ${{ inputs.version_tag }}
+      #     TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
+      #   run: |
+      #     terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan
+      #   working-directory: ./terraform/environment
+
+      # - name: Terraform Outputs
+      #   id: terraform_outputs
+      #   env:
+      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
+      #     TF_VAR_container_version: ${{ inputs.version_tag }}
+      #     TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
+      #   run: |
+      #     echo "workspace_name=$(terraform output -raw workspace_name)" >> $GITHUB_OUTPUT
+      #     echo "container_version=$(terraform output -raw container_version)" >> $GITHUB_OUTPUT
+      #     echo "url=$(terraform output -raw app_fqdn)" >> $GITHUB_OUTPUT
+      #     echo "environment_config_json=$(terraform output environment_config_json)" >> $GITHUB_OUTPUT
+      #   working-directory: ./terraform/environment
