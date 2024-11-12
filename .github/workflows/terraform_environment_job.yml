@@ -118,7 +118,8 @@ jobs:
           TF_VAR_container_version: ${{ inputs.version_tag }}
         run: |
           terraform workspace show
-          terraform plan -var public_access_enabled=${{ inputs.public_access_enabled }} -lock-timeout=300s -input=false -parallelism=30 -out=terraform.plan
+          terraform plan -lock-timeout=300s -input=false -parallelism=30 -out=terraform.plan
+          # terraform plan -var public_access_enabled=${{ inputs.public_access_enabled }} -lock-timeout=300s -input=false -parallelism=30 -out=terraform.plan
         working-directory: ./terraform/environment
 
       # - name: Protect environment workspace
