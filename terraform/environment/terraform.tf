@@ -4,7 +4,7 @@ terraform {
     key            = "opg-mrlpa-mainstream-content-environment/terraform.tfstate"
     encrypt        = true
     region         = "eu-west-1"
-    role_arn       = "arn:aws:iam::311462405659:role/opg-mrlpa-mainstream-content-state-access"
+    role_arn       = "arn:aws:iam::311462405659:role/mrlpa-mainstream-content-state-access"
     dynamodb_table = "remote_lock"
   }
 }
