@@ -54,7 +54,7 @@ locals {
 }
 
 data "aws_acm_certificate" "certificate_app" {
-  domain   = "${local.dev_wildcard}app.modernising.opg.service.justice.gov.uk"
+  domain   = "${local.dev_wildcard}mrlpa.mainstream-content.opg.service.justice.gov.uk"
   provider = aws.region
 }
 
@@ -68,66 +68,6 @@ resource "aws_lb_listener" "app_loadbalancer" {
   default_action {
     target_group_arn = aws_lb_target_group.app.arn
     type             = "forward"
-  }
-  provider = aws.region
-}
-
-resource "aws_lb_listener_rule" "app_maintenance" {
-  listener_arn = aws_lb_listener.app_loadbalancer.arn
-  priority     = 101 # Specifically set so that maintenance mode scripts can locate the correct rule to modify
-  action {
-    type = "redirect"
-
-    redirect {
-      host        = "maintenance.opg.service.justice.gov.uk"
-      path        = "/en-gb/modernised-make-a-lasting-power-of-attorney" # temporarily the english make a lasting power of attorney maintenance page
-      query       = ""
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_302"
-    }
-  }
-  condition {
-    path_pattern {
-      values = ["/maintenance"]
-    }
-  }
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to the condition as this is modified by a script
-      # when putting the service into maintenance mode.
-      condition,
-    ]
-  }
-  provider = aws.region
-}
-
-resource "aws_lb_listener_rule" "app_maintenance_welsh" {
-  listener_arn = aws_lb_listener.app_loadbalancer.arn
-  priority     = 100 # Specifically set so that maintenance mode scripts can locate the correct rule to modify
-  action {
-    type = "redirect"
-
-    redirect {
-      host        = "maintenance.opg.service.justice.gov.uk"
-      path        = "/cy/moderneiddio-gwneud-atwrneiaeth-arhosol" # temporarily the welsh use a lasting power of attorney maintenance page
-      query       = ""
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_302"
-    }
-  }
-  condition {
-    path_pattern {
-      values = ["/cy/maintenance"]
-    }
-  }
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to the condition as this is modified by a script
-      # when putting the service into maintenance mode.
-      condition,
-    ]
   }
   provider = aws.region
 }
