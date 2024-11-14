@@ -1,4 +1,4 @@
-data "aws_route53_zone" "modernising_lpa" {
+data "aws_route53_zone" "mainstream_content" {
   provider = aws.management
   name     = "mainstream-content.opg.service.justice.gov.uk"
 }
@@ -34,5 +34,5 @@ resource "aws_route53_record" "certificate_validation_app" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.modernising_lpa.zone_id
+  zone_id         = data.aws_route53_zone.mainstream_content.zone_id
 }
