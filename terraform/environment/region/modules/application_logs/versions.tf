@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.5.2"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -6,11 +8,6 @@ terraform {
       configuration_aliases = [
         aws.region,
       ]
-
-    }
-    local = {
-      source = "hashicorp/local"
     }
   }
-  required_version = "1.9.8"
 }
