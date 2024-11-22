@@ -1,7 +1,3 @@
-locals {
-  policy_region_prefix = lower(replace(data.aws_region.current.name, "-", ""))
-}
-
 variable "ecs_execution_role" {
   type = object({
     id  = string
@@ -70,20 +66,9 @@ variable "container_port" {
   description = "Port on the container to associate with."
 }
 
-variable "app_env_vars" {
-  type        = any
-  description = "Environment variable values for app"
-}
-
 variable "public_access_enabled" {
   type        = bool
   description = "Enable access to the Modernising LPA service from the public internet"
-}
-
-variable "waf_alb_association_enabled" {
-  type        = bool
-  description = "Enable WAF association with the ALB"
-  default     = true
 }
 
 variable "ecs_cpu_architecture" {
