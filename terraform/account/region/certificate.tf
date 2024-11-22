@@ -1,6 +1,6 @@
-data "aws_route53_zone" "mainstream_content" {
+data "aws_route53_zone" "modernising_lpa" {
   provider = aws.management
-  name     = "mainstream-content.opg.service.justice.gov.uk"
+  name     = "modernising.opg.service.justice.gov.uk"
 }
 
 locals {
@@ -8,7 +8,7 @@ locals {
 }
 
 resource "aws_acm_certificate" "app" {
-  domain_name       = "${local.dev_wildcard}mrlpa.mainstream-content.opg.service.justice.gov.uk"
+  domain_name       = "${local.dev_wildcard}mainstreamcontent.modernising.opg.service.justice.gov.uk"
   validation_method = "DNS"
   provider          = aws.region
 }
@@ -34,5 +34,5 @@ resource "aws_route53_record" "certificate_validation_app" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.mainstream_content.zone_id
+  zone_id         = data.aws_route53_zone.modernising_lpa.zone_id
 }
