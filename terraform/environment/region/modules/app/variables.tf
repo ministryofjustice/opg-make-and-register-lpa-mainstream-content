@@ -45,12 +45,12 @@ variable "ecs_application_log_group_name" {
   description = "The AWS Cloudwatch Log Group resource for application logging"
 }
 
-variable "app_service_repository_url" {
+variable "mrlpa_content_repository_url" {
   type        = string
   description = "(optional) describe your variable"
 }
 
-variable "app_service_container_sha_digest" {
+variable "mrlpa_content_container_sha_digest" {
   type        = string
   description = "(optional) describe your variable"
 }
