@@ -93,7 +93,7 @@ resource "aws_ecs_task_definition" "app" {
   memory                   = 1024
   runtime_platform {
     operating_system_family = "LINUX"
-    cpu_architecture        = var.container_cpu_architecture
+    cpu_architecture        = var.ecs_cpu_architecture
   }
   container_definitions = "[${local.app}]"
   task_role_arn         = var.ecs_task_role.arn
@@ -106,7 +106,7 @@ locals {
     {
       cpu                    = 1,
       essential              = true,
-      image                  = "${var.app_service_repository_url}@${var.app_service_container_sha_digest}",
+      image                  = "${var.mrlpa_content_repository_url}@${var.mrlpa_content_container_sha_digest}",
       mountPoints            = [],
       readonlyRootFilesystem = true
       name                   = "app",
