@@ -15,9 +15,14 @@ module "allow_list" {
 
 
 module "eu_west_1" {
-  source                             = "./region"
+  source = "./region"
+  iam_roles = {
+    ecs_execution_role = module.global.iam_roles.ecs_execution_role
+    app_ecs_task_role  = module.global.iam_roles.app_ecs_task_role
+  }
   mrlpa_content_container_sha_digest = data.aws_ecr_image.make_and_register_lpa_mainstream_content.image_digest
   mrlpa_content_repository_url       = data.aws_ecr_repository.make_and_register_lpa_mainstream_content.repository_url
+  ingress_allow_list_cidr            = module.allow_list.moj_sites
   providers = {
     aws.region = aws.eu_west_1
   }

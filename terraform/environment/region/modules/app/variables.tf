@@ -89,4 +89,8 @@ variable "waf_alb_association_enabled" {
 variable "ecs_cpu_architecture" {
   type        = string
   description = "The CPU architecture to use for the task. The valid values are 'X86_64' and 'ARM64'. Defaults to 'X86_64'."
+  validation {
+    condition     = contains(["X86_64", "ARM64"], var.ecs_cpu_architecture)
+    error_message = "Invalid CPU architecture. Valid values are 'X86_64' and 'ARM64'."
+  }
 }

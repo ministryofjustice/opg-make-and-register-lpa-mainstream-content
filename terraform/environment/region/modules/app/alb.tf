@@ -54,7 +54,7 @@ locals {
 }
 
 data "aws_acm_certificate" "certificate_app" {
-  domain   = "${local.dev_wildcard}mainstreamcontent.mmodernising.opg.service.justice.gov.uk"
+  domain   = "${local.dev_wildcard}mainstreamcontent.modernising.opg.service.justice.gov.uk"
   provider = aws.region
 }
 
