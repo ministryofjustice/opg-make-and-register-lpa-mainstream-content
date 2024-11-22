@@ -20,3 +20,12 @@ variable "iam_roles" {
   })
   description = "ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services."
 }
+
+variable "dns_weighting" {
+  type        = number
+  description = "The weight of the DNS record"
+  validation {
+    condition     = var.dns_weighting >= 0 && var.dns_weighting <= 255
+    error_message = "The DNS weighting must be between 0 and 255"
+  }
+}
