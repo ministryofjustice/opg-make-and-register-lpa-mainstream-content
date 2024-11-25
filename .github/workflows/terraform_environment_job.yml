@@ -38,13 +38,13 @@ on:
       # environment_config_json:
       #   description: "Environment config JSON"
       #   value: ${{ jobs.terraform_environment_workflow.outputs.environment_config_json }}
-    # secrets:
-    #   ssh_deploy_key:
-    #     description: 'SSH Deploy Key'
-    #     required: true
-    #   github_access_token:
-    #     description: 'Github Token'
-    #     required: true
+    secrets:
+      ssh_deploy_key:
+        description: 'SSH Deploy Key'
+        required: true
+      github_access_token:
+        description: 'Github Token'
+        required: true
 
 permissions:
   pull-requests: write
@@ -92,9 +92,9 @@ jobs:
           role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
-      # - uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.ssh_deploy_key }}
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ssh_deploy_key }}
       - uses: terraform-linters/setup-tflint@v4
         name: Setup TFLint
         with:
@@ -126,26 +126,26 @@ jobs:
           # terraform plan -var public_access_enabled=${{ inputs.public_access_enabled }} -lock-timeout=300s -input=false -parallelism=30 -out=terraform.plan
         working-directory: ./terraform/environment
 
-      # - name: Protect environment workspace
-      #   if: github.event_name == 'pull_request' && inputs.workspace_name != 'weblate'
-      #   env:
-      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
-      #     TF_VAR_container_version: ${{ inputs.version_tag }}
-      #   run: |
-      #     wget https://github.com/ministryofjustice/opg-terraform-workspace-manager/releases/download/v0.3.2/opg-terraform-workspace-manager_Linux_x86_64.tar.gz -O $HOME/terraform-workspace-manager.tar.gz
-      #     sudo tar -xvf $HOME/terraform-workspace-manager.tar.gz -C /usr/local/bin
-      #     sudo chmod +x /usr/local/bin/terraform-workspace-manager
-      #     terraform-workspace-manager -register-workspace=$TF_WORKSPACE -time-to-protect=24 -aws-account-id=653761790766 -aws-iam-role=modernising-lpa-ci
-      #   working-directory: ./terraform/environment
+      - name: Protect environment workspace
+        if: github.event_name == 'pull_request' && inputs.workspace_name != 'weblate'
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+          TF_VAR_container_version: ${{ inputs.version_tag }}
+        run: |
+          wget https://github.com/ministryofjustice/opg-terraform-workspace-manager/releases/download/v0.3.2/opg-terraform-workspace-manager_Linux_x86_64.tar.gz -O $HOME/terraform-workspace-manager.tar.gz
+          sudo tar -xvf $HOME/terraform-workspace-manager.tar.gz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/terraform-workspace-manager
+          terraform-workspace-manager -register-workspace=$TF_WORKSPACE -time-to-protect=24 -aws-account-id=653761790766 -aws-iam-role=mrlpa-mc-ci
+        working-directory: ./terraform/environment
 
-      # - name: Terraform Apply
-      #   env:
-      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
-      #     TF_VAR_container_version: ${{ inputs.version_tag }}
-      #     TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
-      #   run: |
-      #     terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan
-      #   working-directory: ./terraform/environment
+      - name: Terraform Apply
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+          TF_VAR_container_version: ${{ inputs.version_tag }}
+          TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
+        run: |
+          terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan
+        working-directory: ./terraform/environment
 
       # - name: Terraform Outputs
       #   id: terraform_outputs
