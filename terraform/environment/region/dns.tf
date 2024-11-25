@@ -21,9 +21,9 @@ resource "aws_route53_record" "mainstreamcontent" {
     zone_id                = module.app.load_balancer.zone_id
   }
 
-  # weighted_routing_policy {
-  #   weight = var.dns_weighting
-  # }
+  weighted_routing_policy {
+    weight = var.dns_weighting
+  }
 
   lifecycle {
     create_before_destroy = true
