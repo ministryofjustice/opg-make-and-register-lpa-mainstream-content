@@ -38,13 +38,13 @@ on:
       # environment_config_json:
       #   description: "Environment config JSON"
       #   value: ${{ jobs.terraform_environment_workflow.outputs.environment_config_json }}
-    # secrets:
-    #   ssh_deploy_key:
-    #     description: 'SSH Deploy Key'
-    #     required: true
-    #   github_access_token:
-    #     description: 'Github Token'
-    #     required: true
+    secrets:
+      ssh_deploy_key:
+        description: 'SSH Deploy Key'
+        required: true
+      github_access_token:
+        description: 'Github Token'
+        required: true
 
 permissions:
   pull-requests: write
@@ -92,9 +92,9 @@ jobs:
           role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
-      # - uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.ssh_deploy_key }}
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ssh_deploy_key }}
       - uses: terraform-linters/setup-tflint@v4
         name: Setup TFLint
         with:
