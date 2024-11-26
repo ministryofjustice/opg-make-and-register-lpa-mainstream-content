@@ -49,7 +49,7 @@ jobs:
     needs: terraform_account_workflow_development
     with:
       workspace_name: production
-      oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
+      oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-production
 
   production_deploy:
       name: ${{ needs.create_tags.outputs.environment_workspace_name }} PR Environment Deploy
