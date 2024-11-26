@@ -8,9 +8,10 @@ resource "aws_lb_target_group" "app" {
   depends_on           = [aws_lb.app]
 
   health_check {
-    enabled = true
-    path    = "/"
-    timeout = 60
+    enabled  = true
+    path     = "/"
+    timeout  = 60
+    interval = 120
   }
 
   provider = aws.region
