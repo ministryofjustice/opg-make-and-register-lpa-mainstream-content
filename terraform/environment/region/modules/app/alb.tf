@@ -7,10 +7,11 @@ resource "aws_lb_target_group" "app" {
   deregistration_delay = 300
   depends_on           = [aws_lb.app]
 
-  # health_check {
-  #   enabled = true
-  #   path    = "/health-check/service"
-  # }
+  health_check {
+    enabled = true
+    path    = "/"
+    timeout = 60
+  }
 
   provider = aws.region
 }
