@@ -43,6 +43,14 @@ jobs:
       workspace_name: development
       oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
 
+  terraform_account_workflow_production:
+    name: TF Apply Dev Account
+    uses: ./.github/workflows/terraform_account_job.yml
+    needs: terraform_account_workflow_development
+    with:
+      workspace_name: production
+      oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
+
   production_deploy:
       name: ${{ needs.create_tags.outputs.environment_workspace_name }} PR Environment Deploy
       if: always() &&
@@ -50,8 +58,12 @@ jobs:
       needs: [
         create_tags,
         docker_build_scan_push,
+        terraform_account_workflow_production,
       ]
       uses: ./.github/workflows/terraform_environment_job.yml
+      secrets:
+        ssh_deploy_key: ${{ secrets.MRLPA_MC_DEPLOY_KEY_PRIVATE_KEY }}
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
       with:
         workspace_name: production
         version_tag: ${{ needs.create_tags.outputs.version_tag }}
@@ -63,6 +75,7 @@ jobs:
     needs: [
       docker_build_scan_push,
       terraform_account_workflow_development,
+      production_deploy,
     ]
     if: always()
     steps:
