@@ -108,7 +108,7 @@ locals {
       essential              = true,
       image                  = "${var.mrlpa_content_repository_url}@${var.mrlpa_content_container_sha_digest}",
       mountPoints            = [],
-      readonlyRootFilesystem = true
+      readonlyRootFilesystem = false
       name                   = "app",
       portMappings = [
         {
