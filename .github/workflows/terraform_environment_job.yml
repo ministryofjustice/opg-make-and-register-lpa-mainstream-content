@@ -147,15 +147,15 @@ jobs:
           terraform apply -lock-timeout=300s -input=false -auto-approve -parallelism=30 terraform.plan
         working-directory: ./terraform/environment
 
-      # - name: Terraform Outputs
-      #   id: terraform_outputs
-      #   env:
-      #     TF_WORKSPACE: ${{ inputs.workspace_name }}
-      #     TF_VAR_container_version: ${{ inputs.version_tag }}
-      #     TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
-      #   run: |
-      #     echo "workspace_name=$(terraform output -raw workspace_name)" >> $GITHUB_OUTPUT
-      #     echo "container_version=$(terraform output -raw container_version)" >> $GITHUB_OUTPUT
-      #     echo "url=$(terraform output -raw app_fqdn)" >> $GITHUB_OUTPUT
-      #     echo "environment_config_json=$(terraform output environment_config_json)" >> $GITHUB_OUTPUT
-      #   working-directory: ./terraform/environment
+      - name: Terraform Outputs
+        id: terraform_outputs
+        env:
+          TF_WORKSPACE: ${{ inputs.workspace_name }}
+          TF_VAR_container_version: ${{ inputs.version_tag }}
+          TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
+        run: |
+          echo "workspace_name=$(terraform output -raw workspace_name)" >> $GITHUB_OUTPUT
+          echo "container_version=$(terraform output -raw container_version)" >> $GITHUB_OUTPUT
+          echo "url=$(terraform output -raw app_fqdn)" >> $GITHUB_OUTPUT
+          echo "environment_config_json=$(terraform output environment_config_json)" >> $GITHUB_OUTPUT
+        working-directory: ./terraform/environment

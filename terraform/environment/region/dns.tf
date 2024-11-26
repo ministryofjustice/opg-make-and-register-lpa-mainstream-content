@@ -7,7 +7,7 @@ locals {
   dns_namespace_for_environment = data.aws_default_tags.current.tags.environment-name == "production" ? "" : "${data.aws_default_tags.current.tags.environment-name}."
 }
 
-resource "aws_route53_record" "mainstreamcontent" {
+resource "aws_route53_record" "app" {
   # mainstreamcontent.modernising.opg.service.justice.gov.uk
   provider       = aws.management
   zone_id        = data.aws_route53_zone.modernising_lpa.zone_id
