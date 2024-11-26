@@ -21,7 +21,6 @@ permissions:
 jobs:
   terraform_environment_cleanup:
     runs-on: ubuntu-latest
-    needs: [ fetch_s3_av_version ]
     steps:
       - uses: actions/checkout@v4
         with:
