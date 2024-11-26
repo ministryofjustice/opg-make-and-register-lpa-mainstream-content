@@ -9,7 +9,7 @@ locals {
 
 resource "aws_route53_record" "mainstreamcontent" {
   # mainstreamcontent.modernising.opg.service.justice.gov.uk
-  provider       = aws.region
+  provider       = aws.management
   zone_id        = data.aws_route53_zone.modernising_lpa.zone_id
   name           = "${local.dns_namespace_for_environment}mainstreamcontent.${data.aws_route53_zone.modernising_lpa.name}"
   type           = "A"
