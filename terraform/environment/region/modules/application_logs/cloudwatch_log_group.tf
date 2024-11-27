@@ -4,14 +4,14 @@
 # }
 
 resource "aws_cloudwatch_log_group" "application_logs" {
-  name              = "${data.aws_default_tags.current.tags.environment-name}_application_logs"
+  name              = "${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc_application_logs"
   retention_in_days = var.application_log_retention_days
   # kms_key_id        = data.aws_kms_alias.cloudwatch_application_logs_encryption.target_key_arn
   provider = aws.region
 }
 
 resource "aws_cloudwatch_query_definition" "app_container_messages" {
-  name            = "${data.aws_default_tags.current.tags.environment-name}/app container messages"
+  name            = "${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc/app container messages"
   log_group_names = [aws_cloudwatch_log_group.application_logs.name]
 
   query_string = <<EOF
