@@ -9,6 +9,9 @@ on:
       environment_workspace_name:
         description: "Environment workspace name"
         value: ${{ jobs.generate_environment_workspace_name.outputs.environment_workspace_name }}
+      timestamp:
+        description: "timestamp"
+        value: ${{ jobs.create_tag.outputs.timestamp }}
 jobs:
   create_tags:
     runs-on: ubuntu-latest
@@ -39,8 +42,12 @@ jobs:
           PRERELEASE_SUFFIX: ${{ env.BRANCH_NAME }}
           RELEASE_BRANCHES: main
           WITH_V: true
+      - name: Set Timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
     outputs:
       docker_tag: ${{ steps.bump_version.outputs.tag }}
+      timestamp: ${{ steps.timestamp.outputs.timestamp }}
 
   generate_environment_workspace_name:
     if: github.ref != 'refs/heads/main'
