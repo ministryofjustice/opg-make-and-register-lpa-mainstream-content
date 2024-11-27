@@ -33,7 +33,7 @@ locals {
   mandatory_moj_tags = {
     business-unit    = "OPG"
     application      = "opg-mrlpa-mainstream-content"
-    environment-name = "${local.environment_name}-mrlpa-mc"
+    environment-name = "${local.environment_name}"
     owner            = "OPG Webops: opgteam+opg-mrlpa-mainstream-content@digital.justice.gov.uk"
     is-production    = local.environment.is_production
     runbook          = "https://github.com/ministryofjustice/opg-make-and-register-lpa-mainstream-content"
