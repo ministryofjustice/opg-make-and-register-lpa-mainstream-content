@@ -1,0 +1,71 @@
+name: "[Workflow] Cleanup PR Workspaces"
+
+on:
+  schedule:
+    # every hour
+    - cron: '0 * * * *'
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  id-token: write
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  terraform_environment_cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - uses: unfor19/install-aws-cli-action@v1
+      - name: Parse terraform version
+        id: tf_version_setup
+        working-directory: ./terraform/environment
+        run: |
+          if [ -f ./versions.tf ]; then
+            terraform_version=$(cat ./versions.tf | ../../scripts/terraform-version.sh)
+            echo "- Terraform version: [${terraform_version}]" >> $GITHUB_STEP_SUMMARY
+            echo "TERRAFORM_VERSION=${terraform_version}" >> $GITHUB_OUTPUT
+          fi
+      - name: "Terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        run: echo "terraform version [${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}]"
+        working-directory: ./terraform/environment
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: ${{ steps.tf_version_setup.outputs.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - name: Configure AWS Credentials For Terraform
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          role-to-assume: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
+          aws-region: eu-west-1
+          role-duration-seconds: 3600
+          role-session-name: GithubActionsTerraform
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MRLPA_MC_DEPLOY_KEY_PRIVATE_KEY }}
+
+      - name: Install Terraform Workspace Manager
+        run: |
+          wget https://github.com/ministryofjustice/opg-terraform-workspace-manager/releases/download/v0.3.2/opg-terraform-workspace-manager_Linux_x86_64.tar.gz -O $HOME/terraform-workspace-manager.tar.gz
+          sudo tar -xvf $HOME/terraform-workspace-manager.tar.gz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/terraform-workspace-manager
+
+      - name: Terraform Init
+        run: terraform init -input=false
+        working-directory: ./terraform/environment
+
+      - name: Destroy PR Terraform Workspaces
+        working-directory: ./terraform/environment
+        env:
+          TF_VAR_pagerduty_api_key: ${{ secrets.PAGERDUTY_API_KEY }}
+        run: |
+          ../../scripts/workspace_cleanup.sh $(terraform-workspace-manager -protected-workspaces=true -aws-account-id=679638075911 -aws-iam-role=mrlpa-mc-workspace-manager)
