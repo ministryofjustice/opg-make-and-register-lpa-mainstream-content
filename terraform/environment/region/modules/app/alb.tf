@@ -52,7 +52,7 @@ resource "aws_lb_listener" "app_loadbalancer_http_redirect" {
 }
 
 locals {
-  dev_wildcard = data.aws_default_tags.current.tags.environment-name == "production" ? "" : "*."
+  dev_wildcard = data.aws_default_tags.current.tags.account-name == "production" ? "" : "*."
 }
 
 data "aws_acm_certificate" "certificate_app" {
