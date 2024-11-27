@@ -1,7 +1,6 @@
 name: "Path To Live"
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -36,6 +35,8 @@ jobs:
       tag: ${{ needs.create_tags.outputs.version_tag }}
       checkout_tag: ${{ github.head_ref }}
       branch_name: ${{ github.head_ref }}
+      timestamp: ${{ needs.create_tags.outputs.timestamp }}
+
 
   terraform_account_workflow_development:
     name: TF Apply Dev Account
