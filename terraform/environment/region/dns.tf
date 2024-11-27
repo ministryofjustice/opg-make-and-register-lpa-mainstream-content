@@ -4,7 +4,7 @@ data "aws_route53_zone" "modernising_lpa" {
 }
 
 locals {
-  dns_namespace_for_environment = data.aws_default_tags.current.tags.environment-name == "production" ? "" : "${data.aws_default_tags.current.tags.environment-name}."
+  dns_namespace_for_environment = data.aws_default_tags.current.tags.account-name == "production" ? "" : "${data.aws_default_tags.current.tags.environment-name}."
 }
 
 resource "aws_route53_record" "app" {

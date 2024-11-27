@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "app" {
-  name                 = "${data.aws_default_tags.current.tags.environment-name}-app"
+  name                 = "${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc-app"
   port                 = 80
   protocol             = "HTTP"
   target_type          = "ip"
@@ -18,7 +18,7 @@ resource "aws_lb_target_group" "app" {
 }
 
 resource "aws_lb" "app" {
-  name                       = "${data.aws_default_tags.current.tags.environment-name}-app"
+  name                       = "${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc-app"
   internal                   = false #tfsec:ignore:AWS005 - public alb
   load_balancer_type         = "application"
   drop_invalid_header_fields = true
@@ -28,7 +28,7 @@ resource "aws_lb" "app" {
 
   # access_logs {
   #   bucket  = data.aws_s3_bucket.access_log.bucket
-  #   prefix  = "app-${data.aws_default_tags.current.tags.environment-name}"
+  #   prefix  = "app-${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc"
   #   enabled = true
   # }
   provider = aws.region
@@ -81,7 +81,7 @@ resource "aws_lb_listener_certificate" "app_loadbalancer_live_service_certificat
 }
 
 resource "aws_security_group" "app_loadbalancer" {
-  name_prefix = "${data.aws_default_tags.current.tags.environment-name}-app-loadbalancer"
+  name_prefix = "${data.aws_default_tags.current.tags.environment-name}-mrlpa-mc-app-loadbalancer"
   description = "app service application load balancer"
   vpc_id      = var.network.vpc_id
   lifecycle {
