@@ -42,7 +42,7 @@ resource "aws_ecs_service" "app" {
 
   timeouts {
     create = "7m"
-    update = "4m"
+    update = "7m"
   }
   provider = aws.region
 }
