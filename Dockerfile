@@ -26,4 +26,8 @@ USER 1017
 
 EXPOSE 3000
 
+COPY scripts/docker_hardening/alpine_image_hardening.sh /harden.sh
+
+RUN /harden.sh && rm /harden.sh
+
 CMD ["./app/start.sh"]
