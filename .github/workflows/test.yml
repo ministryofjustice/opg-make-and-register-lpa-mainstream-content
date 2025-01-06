@@ -11,6 +11,11 @@ on:
         description: 'OIDC Role ARN'
         required: true
         type: string
+      checkout_tag:
+        description: 'Ref or tag to checkout'
+        default: ${{ github.ref }}
+        required: false
+        type: string
 
 permissions:
   id-token: write
@@ -19,6 +24,9 @@ jobs:
   test_environment:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout_tag }}
       - name: Manage Ingress/Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
