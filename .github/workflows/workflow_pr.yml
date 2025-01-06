@@ -68,6 +68,15 @@ jobs:
       # TODO: use reduced role for ingress management here
       oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
 
+  always_remove_ingress:
+    name: Remove CI ingress from environment
+    if: always()
+    uses: ./.github/workflows/remove_ingress_job.yml
+    needs: [ui_tests_pr_env, pr_deploy]
+    with:
+      environment_config_json: ${{ needs.pr_deploy.outputs.environment_config_json }}
+      oidc_role_arn: arn:aws:iam::679638075911:role/opg-mrlpa-mc-github-actions-ci-terraform-development
+
   end_of_pr_workflow:
     name: End of PR Workflow
     runs-on: ubuntu-latest
