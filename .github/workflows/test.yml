@@ -1,0 +1,21 @@
+name: "[Job] Check environment is running"
+
+on:
+  workflow_call:
+    inputs:
+      environment_fqdn:
+        description: "fully qualified domain name of the environment. Output of terraform environment job"
+        type: string
+        required: true
+
+jobs:
+  test_environment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Curl environment
+        id: extract_branch
+        run: |
+          curl -sSf "https://${{ inputs.environment_fqdn }}/register-lasting-power-of-attorney/make-lpa" > /dev/null
