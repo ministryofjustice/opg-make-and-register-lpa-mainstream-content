@@ -16,6 +16,10 @@ on:
         default: ${{ github.ref }}
         required: false
         type: string
+      environment_config_json:
+        description: 'Environment config JSON'
+        required: false
+        type: string
 
 permissions:
   id-token: write
