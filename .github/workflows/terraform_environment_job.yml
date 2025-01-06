@@ -26,6 +26,9 @@ on:
         required: true
         type: string
     outputs:
+      environment_fqdn:
+        description: "fully qualified domain name of the environment"
+        value: ${{ jobs.terraform_environment_workflow.outputs.environment_fqdn }}
       terraform_workspace_name:
         description: "Name of Terraform workspace"
         value: ${{ jobs.terraform_environment_workflow.outputs.terraform_workspace_name }}
@@ -154,6 +157,7 @@ jobs:
           TF_VAR_container_version: ${{ inputs.version_tag }}
           TF_VAR_pagerduty_api_key: ${{ secrets.pagerduty_api_key }}
         run: |
+          echo "environment_fqdn=$(terraform output -raw app_fqdn)" >> $GITHUB_OUTPUT
           echo "workspace_name=$(terraform output -raw workspace_name)" >> $GITHUB_OUTPUT
           echo "container_version=$(terraform output -raw container_version)" >> $GITHUB_OUTPUT
           echo "url=$(terraform output -raw app_fqdn)" >> $GITHUB_OUTPUT
