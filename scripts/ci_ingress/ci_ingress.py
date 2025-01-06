@@ -35,7 +35,7 @@ class IngressManager:
 
     def set_iam_role_session(self):
         if os.getenv('CI'):
-            role_arn = 'arn:aws:iam::{}:role/modernising-lpa-ci'.format(
+            role_arn = 'arn:aws:iam::{}:role/mrlpa-mc-ci'.format(
                 self.aws_account_id)
         else:
             role_arn = 'arn:aws:iam::{}:role/operator'.format(
