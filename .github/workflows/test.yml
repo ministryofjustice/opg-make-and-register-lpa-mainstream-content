@@ -9,7 +9,7 @@ on:
         required: true
 
 jobs:
-  create_tags:
+  test_environment:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
