@@ -1,4 +1,7 @@
 output "load_balancer" {
-  description = "The load balancer DNS name"
-  value       = aws_lb.app
+  value = aws_lb.app
+}
+
+output "load_balancer_security_group" {
+  value = aws_security_group.app_loadbalancer
 }

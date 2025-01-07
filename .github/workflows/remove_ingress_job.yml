@@ -1,0 +1,40 @@
+name: "[Job] Remove ingress"
+
+on:
+  workflow_call:
+    inputs:
+      environment_config_json:
+        description: 'Environment config JSON'
+        required: true
+        type: string
+      oidc_role_arn:
+        description: 'OIDC Role ARN'
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  remove_ingress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: unfor19/install-aws-cli-action@v1
+        name: Run Against Image/aws-cli-action
+      - name: Manage Ingress/Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ inputs.oidc_role_arn }}
+          role-duration-seconds: 900
+          role-session-name: GithubActionsTerraform
+      - uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.9'
+          check-latest: true
+      - name: remove_ingress
+        run: |
+          pip install -r ./scripts/ci_ingress/requirements.txt
+          python ./scripts/ci_ingress/ci_ingress.py ${{ inputs.environment_config_json }}

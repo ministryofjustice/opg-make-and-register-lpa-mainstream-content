@@ -1,0 +1,57 @@
+name: "[Job] Check environment is running"
+
+on:
+  workflow_call:
+    inputs:
+      environment_fqdn:
+        description: "fully qualified domain name of the environment. Output of terraform environment job"
+        type: string
+        required: true
+      oidc_role_arn:
+        description: 'OIDC Role ARN'
+        required: true
+        type: string
+      checkout_tag:
+        description: 'Ref or tag to checkout'
+        default: ${{ github.ref }}
+        required: false
+        type: string
+      environment_config_json:
+        description: 'Environment config JSON'
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+
+jobs:
+  test_environment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout_tag }}
+      - name: Manage Ingress/Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ inputs.oidc_role_arn }}
+          role-duration-seconds: 900
+          role-session-name: GithubActionsTerraform
+      - uses: actions/setup-python@v5.3.0
+        if: inputs.run_against_image != true
+        with:
+          python-version: '3.9'
+          check-latest: true
+      - run: pip install -r ./scripts/ci_ingress/requirements.txt
+        if: inputs.run_against_image != true
+      - name: add_ingress
+        if: inputs.run_against_image != true
+        run: python ./scripts/ci_ingress/ci_ingress.py ${{ inputs.environment_config_json}} --add
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Curl environment
+        id: extract_branch
+        run: |
+          curl -sSf "https://${{ inputs.environment_fqdn }}/register-lasting-power-of-attorney/make-lpa" > /dev/null
