@@ -2,7 +2,7 @@ FROM node:20-alpine AS fetched-repo
 
 WORKDIR /app
 
-RUN apk add --no-cache git=2.47.1-r0
+RUN apk add --no-cache git=2.47.2-r0
 ADD https://api.github.com/repos/gaynorc75/register-lpa-prototype/git/refs/heads/main version.json
 RUN git clone -b main https://github.com/gaynorc75/register-lpa-prototype.git
 
