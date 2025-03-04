@@ -10,7 +10,7 @@ data "aws_ecr_image" "make_and_register_lpa_mainstream_content" {
 }
 
 module "allow_list" {
-  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.0.2"
+  source = "git@github.com:ministryofjustice/opg-terraform-aws-moj-ip-allow-list.git?ref=v3.0.5"
 }
 
 
