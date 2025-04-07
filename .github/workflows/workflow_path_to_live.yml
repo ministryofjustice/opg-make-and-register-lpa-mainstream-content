@@ -55,7 +55,7 @@ jobs:
       oidc_role_arn: arn:aws:iam::997462338508:role/opg-mrlpa-mc-github-actions-ci-terraform-production
 
   production_deploy:
-      name: ${{ needs.create_tags.outputs.environment_workspace_name }} PR Environment Deploy
+      name: ${{ needs.create_tags.outputs.environment_workspace_name }} Environment Deploy
       needs: [
         create_tags,
         docker_build_scan_push,
@@ -71,7 +71,7 @@ jobs:
         oidc_role_arn: arn:aws:iam::997462338508:role/opg-mrlpa-mc-github-actions-ci-terraform-production
 
   ur_deploy:
-      name: ${{ needs.create_tags.outputs.environment_workspace_name }} PR Environment Deploy
+      name: ${{ needs.create_tags.outputs.environment_workspace_name }} Environment Deploy
       needs: [
         create_tags,
         docker_build_scan_push,
