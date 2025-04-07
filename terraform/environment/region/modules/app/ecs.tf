@@ -138,6 +138,10 @@ locals {
           name  = "APP_PORT",
           value = tostring(var.container_port)
         },
+        {
+          name  = "MRLPA_SERVICE_URL",
+          value = var.mrlpa_service_url
+        },
       ]
     }
   )
