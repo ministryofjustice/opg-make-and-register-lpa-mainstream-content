@@ -19,9 +19,10 @@ output "container_version" {
 variable "environments" {
   type = map(
     object({
-      account_id    = string
-      account_name  = string
-      is_production = bool
+      account_id        = string
+      account_name      = string
+      is_production     = bool
+      mrlpa_service_url = string
     })
   )
 }

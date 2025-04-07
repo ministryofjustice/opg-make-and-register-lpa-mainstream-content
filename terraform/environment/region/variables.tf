@@ -29,3 +29,8 @@ variable "dns_weighting" {
     error_message = "The DNS weighting must be between 0 and 255"
   }
 }
+
+variable "mrlpa_service_url" {
+  type        = string
+  description = "MRLPA URL"
+}

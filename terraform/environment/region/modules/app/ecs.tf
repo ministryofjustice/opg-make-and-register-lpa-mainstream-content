@@ -102,6 +102,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 locals {
+  mrlpa_service_url = "https://${data.aws_default_tags.current.tags.environment-name}.app.modernising.opg.service.justice.gov.uk"
   app = jsonencode(
     {
       cpu                    = 1,
@@ -137,6 +138,10 @@ locals {
         {
           name  = "APP_PORT",
           value = tostring(var.container_port)
+        },
+        {
+          name  = "MRLPA_SERVICE_URL",
+          value = var.mrlpa_service_url == "" ? local.mrlpa_service_url : var.mrlpa_service_url
         },
       ]
     }
