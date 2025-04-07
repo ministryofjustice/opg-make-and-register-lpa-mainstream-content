@@ -22,6 +22,7 @@ module "eu_west_1" {
   }
   mrlpa_content_container_sha_digest = data.aws_ecr_image.make_and_register_lpa_mainstream_content.image_digest
   mrlpa_content_repository_url       = data.aws_ecr_repository.make_and_register_lpa_mainstream_content.repository_url
+  mrlpa_service_url                  = local.environment.mrlpa_service_url
   ingress_allow_list_cidr            = module.allow_list.moj_sites
   dns_weighting                      = 255
   providers = {

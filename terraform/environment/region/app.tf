@@ -12,6 +12,7 @@ module "app" {
   alb_deletion_protection_enabled    = false
   mrlpa_content_container_sha_digest = var.mrlpa_content_container_sha_digest
   mrlpa_content_repository_url       = var.mrlpa_content_repository_url
+  mrlpa_service_url                  = var.mrlpa_service_url
   container_port                     = 3000
   ecs_application_log_group_name     = module.application_logs.cloudwatch_log_group.name
   ecs_capacity_provider              = "FARGATE_SPOT"

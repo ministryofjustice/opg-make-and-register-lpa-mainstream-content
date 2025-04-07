@@ -79,3 +79,8 @@ variable "ecs_cpu_architecture" {
     error_message = "Invalid CPU architecture. Valid values are 'X86_64' and 'ARM64'."
   }
 }
+
+variable "mrlpa_service_url" {
+  type        = string
+  description = "MRLPA URL"
+}
