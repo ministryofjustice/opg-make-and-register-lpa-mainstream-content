@@ -34,3 +34,7 @@ variable "mrlpa_service_url" {
   type        = string
   description = "MRLPA URL"
 }
+
+variable "public_access_enabled" {
+  type = bool
+}

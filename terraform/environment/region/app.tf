@@ -27,7 +27,7 @@ module "app" {
     application_subnets = data.aws_subnet.application[*].id
     public_subnets      = data.aws_subnet.public[*].id
   }
-  public_access_enabled = false
+  public_access_enabled = var.public_access_enabled
 
 
   providers = {

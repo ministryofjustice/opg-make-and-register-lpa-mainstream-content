@@ -25,6 +25,7 @@ module "eu_west_1" {
   mrlpa_service_url                  = local.environment.mrlpa_service_url
   ingress_allow_list_cidr            = module.allow_list.moj_sites
   dns_weighting                      = 255
+  public_access_enabled              = var.public_access_enabled
   providers = {
     aws.region     = aws.eu_west_1
     aws.management = aws.management_global
