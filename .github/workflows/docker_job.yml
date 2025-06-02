@@ -98,7 +98,7 @@ jobs:
           exit-code: 1
 
       - name: Build ${{ matrix.ecr_repository }} Image
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.17.0
         with:
           context: .
           file: ${{ matrix.path }}
