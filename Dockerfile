@@ -2,7 +2,7 @@ FROM node:20-alpine@sha256:d3507a213936fe4ef54760a186e113db5188472d9efdf491686bd
 
 WORKDIR /app
 
-RUN apk add --no-cache git=2.49.0-r0
+RUN apk add --no-cache git=2.49.1-r0
 ADD https://api.github.com/repos/ministryofjustice/register-lpa-prototype/git/refs/heads/main version.json
 RUN git clone -b main https://github.com/ministryofjustice/register-lpa-prototype.git
 
