@@ -28,17 +28,17 @@ jobs:
   test_environment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           ref: ${{ inputs.checkout_tag }}
       - name: Manage Ingress/Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-region: eu-west-1
           role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
-      - uses: actions/setup-python@v5.3.0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         if: inputs.run_against_image != true
         with:
           python-version: '3.9'
@@ -48,7 +48,7 @@ jobs:
       - name: add_ingress
         if: inputs.run_against_image != true
         run: python ./scripts/ci_ingress/ci_ingress.py ${{ inputs.environment_config_json}} --add
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: '0'
       - name: Curl environment

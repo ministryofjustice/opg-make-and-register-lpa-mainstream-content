@@ -20,17 +20,17 @@ jobs:
   remove_ingress:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: unfor19/install-aws-cli-action@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: unfor19/install-aws-cli-action@f5b46b7f32cf5e7ebd652656c5036bf83dd1e60c # v1
         name: Run Against Image/aws-cli-action
       - name: Manage Ingress/Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-region: eu-west-1
           role-to-assume: ${{ inputs.oidc_role_arn }}
           role-duration-seconds: 900
           role-session-name: GithubActionsTerraform
-      - uses: actions/setup-python@v5.3.0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: '3.9'
           check-latest: true
